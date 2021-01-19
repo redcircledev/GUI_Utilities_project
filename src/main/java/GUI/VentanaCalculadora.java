@@ -4,12 +4,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Objects;
 
 public class VentanaCalculadora extends JFrame {
+
+    JTextField screen;
+    float opA;
+    float opB;
+    String operation = "";
+    float result;
+    boolean opIndicator;
 
     public VentanaCalculadora() {
         this.setTitle("Calculadora");
         this.setSize(330, 530);
+        //True es A y False es B
+        opIndicator = true;
         initComponents();
     }
 
@@ -32,7 +42,7 @@ public class VentanaCalculadora extends JFrame {
         //Creamos una fuente que se vea mejor para la pantalla
         Font fontPantalla = new Font("Consolas", Font.PLAIN, 25);
 
-        JTextField screen = new JTextField();
+        screen = new JTextField();
         screen.setFont(fontPantalla);
         screen.setPreferredSize(new Dimension(320,40));
         screen.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -45,11 +55,12 @@ public class VentanaCalculadora extends JFrame {
         short it = 0;
         short difference = 6;
         short numpad = 1;
+        JButton nuevoBoton;
 
         do{
             //Caracteres especiales
             if(j == 3){
-                JButton nuevoBoton = new JButton();
+                nuevoBoton = new JButton();
                 switch(i){
                     case 0:
                         nuevoBoton.setFont(fontPantalla);
@@ -75,11 +86,11 @@ public class VentanaCalculadora extends JFrame {
             }
             //Ultima fila
             else if(i == 3){
-                JButton nuevoBoton = new JButton();
+                nuevoBoton = new JButton();
                 switch (j){
                     case 0:
                         nuevoBoton.setFont(fontPantalla);
-                        nuevoBoton.setText(" ");
+                        nuevoBoton.setText("C");
                         panelBotones.add(nuevoBoton);
                         break;
                     case 1:
@@ -96,13 +107,17 @@ public class VentanaCalculadora extends JFrame {
             }
             //Teclado numerico
             else {
-                JButton nuevoBoton = new JButton();
+                nuevoBoton = new JButton();
                 nuevoBoton.setFont(fontPantalla);
                 nuevoBoton.setText(String.valueOf(numpad + difference));
                 panelBotones.add(nuevoBoton);
                 numpad++;
             }
+            //Ahora que ya terminamos de poner la parte gráfica de los botones añadimos los listener correspondientes
+            final JButton finalNuevoBoton = nuevoBoton;
+            nuevoBoton.addActionListener(e -> handleActionListeners(finalNuevoBoton.getText()));
 
+            //Aquí controlamos el flujo del do/while
             if(j == 3){
                 i++;
                 difference = (short) (difference - 6);
@@ -112,8 +127,7 @@ public class VentanaCalculadora extends JFrame {
             }
 
             it++;
-            System.out.println("[" + i + "]" + "[" + j + "]");
-
+            //System.out.println("[" + i + "]" + "[" + j + "]");
         }while(it < 16);
 
         panelPantalla.add(screen);
@@ -121,5 +135,50 @@ public class VentanaCalculadora extends JFrame {
         panelPrincipal.add(panelBotones);
 
         this.add(panelPrincipal);
+    }
+
+    private void handleActionListeners(String buttonPressed){
+
+        StringBuilder screenText = new StringBuilder();
+        screenText.append(screen.getText());
+        //Vamos a eliminar los ceros a la izquierda
+        if(screenText.charAt(0) == '0'){
+            screenText.deleteCharAt(0);
+        }
+        //ahora vamos a excluir números de operaciones
+        if(!Objects.equals(buttonPressed, "+") && !Objects.equals(buttonPressed, "-") && !Objects.equals(buttonPressed, "*") && !Objects.equals(buttonPressed, "=")){
+            screenText.append(buttonPressed);
+        }else {
+            if(opIndicator){
+                opA = Float.parseFloat(screenText.toString());
+                operation = buttonPressed;
+                screenText = new StringBuilder();
+                screenText.append("0");
+                opIndicator = false;
+            }else{
+                opB = Float.parseFloat(screenText.toString());
+                result = Float.parseFloat(handleOperation());
+                screenText = new StringBuilder(String.valueOf(result));
+                opIndicator = true;
+            }
+        }
+        screen.setText(screenText.toString());
+    }
+
+    private String handleOperation(){
+        switch(operation){
+            case "+":
+                result = opA + opB;
+                return String.valueOf(result);
+            case "-":
+                result = opA - opB;
+                return String.valueOf(result);
+            case "*":
+                result = opA * opB;
+                return String.valueOf(result);
+            default:
+                break;
+        }
+        return "0";
     }
 }
